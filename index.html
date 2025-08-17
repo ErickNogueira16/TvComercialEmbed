@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Raizz Capital - TV Comercial</title>
+    <script type="text/javascript" src="https://public.tableau.com/javascripts/api/tableau-2.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        #vizContainer {
+            width: 100%;
+            height: 100vh;
+        }
+    </style>
+    <link rel="icon" href="https://raizzcapital.com.br/wp-content/uploads/2024/02/logo-raizz-capital-fundo-branco.webp">
+</head>
+<body>
+    <div id="vizContainer"></div>
+
+    <script>
+        let viz;
+        const dashboardNames = ["Resumo | Demanda Quente", "Funil | Visitas", "Setores | Imobiliárias", "Tamanho da Demanda"];
+        const produtos = ["Raizz Viana", "Raizz Itajaí"];
+        
+        const tempoPorPainel = 1000;
+        let currentDashboardIndex = 0;
+        let currentProdutoIndex = 0;
+        let isFirstRun = true;
+
+        const url = "https://public.tableau.com/views/TVComercial-RaizzCapital/ResumoDemandaQuente?:language=pt-BR&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link";
+
+        const options = {
+            hideTabs: true,
+            hideToolbar: true,
+            onFirstInteractive: function() {
+                console.log("Visualização carregada!");
+                iniciarCiclo();
+            }
+        };
+
+        function initViz() {
+            const containerDiv = document.getElementById("vizContainer");
+            viz = new tableau.Viz(containerDiv, url, options);
+        }
+
+        function iniciarCiclo() {
+            // Começa com o primeiro produto e painel
+            trocarProdutoEPainel();
+            
+            // Configura o intervalo para as trocas
+            setInterval(trocarProdutoEPainel, tempoPorPainel);
+        }
+
+        function trocarProdutoEPainel() {
+            const workbook = viz.getWorkbook();
+            const produtoAtual = produtos[currentProdutoIndex];
+            const painelAtual = dashboardNames[currentDashboardIndex];
+
+            if(isFirstRun) {
+                // Primeira execução - apenas ativa o painel inicial
+                workbook.activateSheetAsync(painelAtual)
+                    .then(() => {
+                        console.log("Painel inicial ativado:", painelAtual);
+                        isFirstRun = false;
+                    });
+                return;
+            }
+
+            // Para execuções normais
+            workbook.changeParameterValueAsync("ProdutoSelecionado", produtoAtual)
+                .then(() => {
+                    console.log("Produto definido para:", produtoAtual);
+                    return workbook.activateSheetAsync(painelAtual);
+                })
+                .then(() => {
+                    console.log("Painel ativado:", painelAtual);
+                    
+                    // Avança para o próximo painel
+                    currentDashboardIndex++;
+                    
+                    // Se completou todos os painéis, troca o produto
+                    if(currentDashboardIndex >= dashboardNames.length) {
+                        currentDashboardIndex = 0;
+                        currentProdutoIndex = (currentProdutoIndex + 1) % produtos.length;
+                    }
+                })
+                .catch(error => {
+                    console.error("Erro na transição:", error);
+                });
+        }
+
+        initViz();
+
+        // Recarrega a página a cada 30 minutos
+        setTimeout(() => {
+            location.reload();
+        }, 900000);
+    </script>
+</body>
+</html>
