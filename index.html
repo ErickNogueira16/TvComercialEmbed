@@ -23,7 +23,7 @@
         const dashboardNames = ["Resumo | Demanda Quente", "Funil | Visitas", "Setores | Imobiliárias", "Tamanho da Demanda"];
         const produtos = ["Raizz Viana", "Raizz Itajaí"];
         
-        const tempoPorPainel = 1000;
+        const tempoPorPainel = 10000;
         let currentDashboardIndex = 0;
         let currentProdutoIndex = 0;
         let isFirstRun = true;
@@ -92,10 +92,11 @@
 
         initViz();
 
-        // Recarrega a página a cada 30 minutos
+        // Recarrega a página a cada 15 minutos
         setTimeout(() => {
             location.reload();
-        }, 900000);
+        }, 450000);
     </script>
 </body>
+
 </html>
