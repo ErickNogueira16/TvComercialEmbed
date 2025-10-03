@@ -20,18 +20,18 @@
 
     <script>
         let viz;
-        const dashboardNames = ["COMERCIAL | ITAJAÍ", "COMERCIAL | VIANA"];
+        const dashboardNames = ["COMERCIAL | ITAJAÍ", "COMERCIAL | VIANA"]; 
+        const tempoPorPainel = 10000;
         let currentDashboardIndex = 0;
 
-        const tempoPorPainel = 20000;
-
-        const url = "https://public.tableau.com/views/TVComercial-RaizzCapital6/COMERCIALITAJA?:language=pt-BR&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link";
+        const url = "https://public.tableau.com/views/TVComercial-RaizzCapital6/COMERCIALITAJA?:language=pt-BR&publish=yes";
 
         const options = {
             hideTabs: true,
             hideToolbar: true,
             onFirstInteractive: function() {
                 console.log("Visualização carregada!");
+                listarSheets(); // <<< mostra no console os nomes dos sheets
                 iniciarCiclo();
             }
         };
@@ -39,6 +39,13 @@
         function initViz() {
             const containerDiv = document.getElementById("vizContainer");
             viz = new tableau.Viz(containerDiv, url, options);
+        }
+
+        // Função para listar os nomes das sheets disponíveis
+        function listarSheets() {
+            const workbook = viz.getWorkbook();
+            const sheets = workbook.getPublishedSheetsInfo();
+            sheets.forEach(s => console.log("Sheet disponível:", s.getName()));
         }
 
         function iniciarCiclo() {
@@ -62,10 +69,9 @@
         initViz();
 
         // Recarrega a página a cada 15 minutos
-        setInterval(() => {
+        setTimeout(() => {
             location.reload();
         }, 900000);
     </script>
 </body>
 </html>
-
