@@ -23,7 +23,7 @@
         const dashboardNames = ["COMERCIAL | ITAJAÍ", "COMERCIAL | VIANA"];
         let currentDashboardIndex = 0;
 
-        const tempoPorPainel = 100000; // 10 segundos
+        const tempoPorPainel = 10000; // 10 segundos
 
         const url = "https://public.tableau.com/views/TVComercial-RaizzCapital6/COMERCIALITAJA?:language=pt-BR&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link";
 
@@ -42,8 +42,8 @@
         }
 
         function iniciarCiclo() {
-            trocarPainel(); // inicia com o primeiro
-            setInterval(trocarPainel, tempoPorPainel); // troca a cada 10s
+            // só agenda, não chama imediatamente
+            setInterval(trocarPainel, tempoPorPainel);
         }
 
         function trocarPainel() {
@@ -70,4 +70,3 @@
     </script>
 </body>
 </html>
-
