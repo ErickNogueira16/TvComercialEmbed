@@ -21,7 +21,6 @@
     <script>
         let viz;
         const dashboardNames = ["COMERCIAL | ITAJAÍ", "COMERCIAL | VIANA"];
-        const produtos = ["Raizz Viana", "Raizz Itajaí"];
         
         const tempoPorPainel = 10000;
         let currentDashboardIndex = 0;
@@ -51,22 +50,6 @@
             // Configura o intervalo para as trocas
             setInterval(trocarProdutoEPainel, tempoPorPainel);
         }
-
-        function trocarProdutoEPainel() {
-            const workbook = viz.getWorkbook();
-            const produtoAtual = produtos[currentProdutoIndex];
-            const painelAtual = dashboardNames[currentDashboardIndex];
-
-            if(isFirstRun) {
-                // Primeira execução - apenas ativa o painel inicial
-                workbook.activateSheetAsync(painelAtual)
-                    .then(() => {
-                        console.log("Painel inicial ativado:", painelAtual);
-                        isFirstRun = false;
-                    });
-                return;
-            }
-
             // Para execuções normais
             workbook.changeParameterValueAsync("ProdutoSelecionado", produtoAtual)
                 .then(() => {
@@ -100,6 +83,7 @@
 </body>
 
 </html>
+
 
 
 
