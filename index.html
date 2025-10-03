@@ -21,11 +21,11 @@
     <script>
         let viz;
         const dashboardNames = ["COMERCIAL | ITAJAÍ", "COMERCIAL | VIANA"];
-        const produtos = ["Produto A", "Produto B"]; // ajuste conforme seus parâmetros reais
-
+        
         const tempoPorPainel = 10000;
         let currentDashboardIndex = 0;
         let currentProdutoIndex = 0;
+        let isFirstRun = true;
 
         const url = "https://public.tableau.com/views/TVComercial-RaizzCapital6/COMERCIALITAJA?:language=pt-BR&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link";
 
@@ -44,16 +44,13 @@
         }
 
         function iniciarCiclo() {
+            // Começa com o primeiro produto e painel
             trocarProdutoEPainel();
+            
+            // Configura o intervalo para as trocas
             setInterval(trocarProdutoEPainel, tempoPorPainel);
         }
-
-        function trocarProdutoEPainel() {
-            const workbook = viz.getWorkbook();
-            const produtoAtual = produtos[currentProdutoIndex];
-            const painelAtual = dashboardNames[currentDashboardIndex];
-
-            // Atualiza parâmetro e muda painel
+            // Para execuções normais
             workbook.changeParameterValueAsync("ProdutoSelecionado", produtoAtual)
                 .then(() => {
                     console.log("Produto definido para:", produtoAtual);
@@ -61,12 +58,12 @@
                 })
                 .then(() => {
                     console.log("Painel ativado:", painelAtual);
-
+                    
                     // Avança para o próximo painel
                     currentDashboardIndex++;
-
+                    
                     // Se completou todos os painéis, troca o produto
-                    if (currentDashboardIndex >= dashboardNames.length) {
+                    if(currentDashboardIndex >= dashboardNames.length) {
                         currentDashboardIndex = 0;
                         currentProdutoIndex = (currentProdutoIndex + 1) % produtos.length;
                     }
@@ -74,14 +71,22 @@
                 .catch(error => {
                     console.error("Erro na transição:", error);
                 });
-        }
-
+        
         initViz();
 
         // Recarrega a página a cada 15 minutos
         setTimeout(() => {
             location.reload();
-        }, 900000);
+        }, 450000);
     </script>
 </body>
+
 </html>
+
+
+
+
+
+
+
+
