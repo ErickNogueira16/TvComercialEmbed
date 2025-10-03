@@ -21,13 +21,14 @@
     <script>
         let viz;
         const dashboardNames = ["COMERCIAL | ITAJAÍ", "COMERCIAL | VIANA"];
+        const produtos = ["Raizz Viana", "Raizz Itajaí"];
         
-        const tempoPorPainel = 10000;
+        const tempoPorPainel = 1000;
         let currentDashboardIndex = 0;
         let currentProdutoIndex = 0;
         let isFirstRun = true;
 
-        const url = "https://public.tableau.com/views/TVComercial-RaizzCapital6/COMERCIALITAJA?:language=pt-BR&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link";
+        const url = "https://public.tableau.com/views/TVComercial-RaizzCapital/ResumoDemandaQuente?:language=pt-BR&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link";
 
         const options = {
             hideTabs: true,
@@ -50,6 +51,22 @@
             // Configura o intervalo para as trocas
             setInterval(trocarProdutoEPainel, tempoPorPainel);
         }
+
+        function trocarProdutoEPainel() {
+            const workbook = viz.getWorkbook();
+            const produtoAtual = produtos[currentProdutoIndex];
+            const painelAtual = dashboardNames[currentDashboardIndex];
+
+            if(isFirstRun) {
+                // Primeira execução - apenas ativa o painel inicial
+                workbook.activateSheetAsync(painelAtual)
+                    .then(() => {
+                        console.log("Painel inicial ativado:", painelAtual);
+                        isFirstRun = false;
+                    });
+                return;
+            }
+
             // Para execuções normais
             workbook.changeParameterValueAsync("ProdutoSelecionado", produtoAtual)
                 .then(() => {
@@ -71,22 +88,14 @@
                 .catch(error => {
                     console.error("Erro na transição:", error);
                 });
-        
+        }
+
         initViz();
 
-        // Recarrega a página a cada 15 minutos
+        // Recarrega a página a cada 30 minutos
         setTimeout(() => {
             location.reload();
-        }, 450000);
+        }, 900000);
     </script>
 </body>
-
 </html>
-
-
-
-
-
-
-
-
