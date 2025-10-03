@@ -23,7 +23,7 @@
         const dashboardNames = ["COMERCIAL | ITAJAÍ", "COMERCIAL | VIANA"];
         let currentDashboardIndex = 0;
 
-        const tempoPorPainel = 10000; // 10 segundos
+        const tempoPorPainel = 20000;
 
         const url = "https://public.tableau.com/views/TVComercial-RaizzCapital6/COMERCIALITAJA?:language=pt-BR&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link";
 
@@ -42,7 +42,6 @@
         }
 
         function iniciarCiclo() {
-            // só agenda, não chama imediatamente
             setInterval(trocarPainel, tempoPorPainel);
         }
 
@@ -53,7 +52,6 @@
             workbook.activateSheetAsync(painelAtual)
                 .then(() => {
                     console.log("Painel ativado:", painelAtual);
-                    // avança para o próximo
                     currentDashboardIndex = (currentDashboardIndex + 1) % dashboardNames.length;
                 })
                 .catch(error => {
@@ -63,10 +61,11 @@
 
         initViz();
 
-        // Recarrega a página a cada 15 minutos (900.000 ms)
+        // Recarrega a página a cada 15 minutos
         setInterval(() => {
             location.reload();
         }, 900000);
     </script>
 </body>
 </html>
+
