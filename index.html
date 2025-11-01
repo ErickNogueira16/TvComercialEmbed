@@ -1,82 +1,95 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Raizz Capital - TV Comercial</title>
-  <link rel="icon" href="https://raizzcapital.com.br/wp-content/uploads/2024/02/logo-raizz-capital-fundo-branco.webp">
-  <script src="https://public.tableau.com/javascripts/api/tableau.embedding.3.latest.min.js"></script>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-    }
-    #vizContainer {
-      width: 100%;
-      height: 100vh;
-    }
-  </style>
+  <meta charset="UTF-8">
+  <title>Raizz Capital - TV Comercial</title>
+  <link rel="icon" href="https://raizzcapital.com.br/wp-content/uploads/2024/02/logo-raizz-capital-fundo-branco.webp">
+  
+  <script type="module" src="https://public.tableau.com/javascripts/api/tableau.embedding.3.latest.min.js"></script>
+  
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background-color: #000;
+    }
+    #vizContainer {
+      width: 100%;
+      height: 100vh;
+    }
+  </style>
 </head>
 <body>
-  <div id="vizContainer"></div>
+  <div id="vizContainer"></div>
 
-  <script>
-    const backendURL = "https://tableau-backend-h83x.onrender.com/get_tableau_url";
-    const dashboardNames = ["COMERCIAL | ITAJAÍ", "COMERCIAL | VIANA"];
-    const tempoPorPainel = 60000; // 1 min
-    let viz, currentDashboardIndex = 0;
+  <script>
+    const backendURL = "https://tableau-backend-h83x.onrender.com/get_tableau_url";
+    const dashboardNames = ["COMERCIAL | ITAJAÍ", "COMERCIAL | VIANA"];
+    const tempoPorPainel = 60000; // 1 min
+    let viz, currentDashboardIndex = 0;
 
-    async function initViz() {
-      try {
-        // 1️⃣ Chama o backend para pegar URL autenticada
-        const resp = await fetch(backendURL);
-        const data = await resp.json();
+    async function initViz() {
+      try {
+        // 1️⃣ Chama o backend para pegar URL autenticada (seu código está perfeito aqui)
+        const resp = await fetch(backendURL);
+        const data = await resp.json();
 
-        if (data.error) {
-          console.error("Erro ao obter URL:", data.error);
-          return;
-        }
+        if (data.error) {
+          console.error("Erro ao obter URL:", data.error);
+          return;
+        }
 
-        const url = data.embed_url;
-        console.log("✅ URL autenticada recebida:", url);
+        const url = data.embed_url;
+        console.log("✅ URL autenticada recebida:", url);
 
-        // 2️⃣ Cria o elemento <tableau-viz> e adiciona ao container
-        const container = document.getElementById("vizContainer");
-        container.innerHTML = ""; // limpa se já existir
+        // 2️⃣ Cria o elemento <tableau-viz> e adiciona ao container
+        const container = document.getElementById("vizContainer");
+        const vizElement = document.createElement("tableau-viz");
+        
+        vizElement.src = url;
+        vizElement.toolbar = "hidden";
+        vizElement.hideTabs = true;
+        
+        container.appendChild(vizElement);
+        viz = vizElement;
 
-        const vizElement = document.createElement("tableau-viz");
-        vizElement.src = url;
-        vizElement.toolbar = "hidden";
-        vizElement.hideTabs = true;
-        vizElement.style.width = "100%";
-        vizElement.style.height = "100vh";
-        container.appendChild(vizElement);
+        // CORREÇÃO 2: Espera a visualização ficar interativa ANTES de iniciar os timers
+        viz.addEventListener('firstinteractive', async (event) => {
+            console.log('✅ Visualização está pronta e interativa!');
+            
+            // AGORA é seguro iniciar a rotação e o reload
+            setInterval(trocarPainel, tempoPorPainel);
+            setTimeout(() => location.reload(true), 15 * 60 * 1000); 
+        });
 
-        viz = vizElement;
+      } catch (error) {
+        console.error("❌ Erro ao inicializar:", error);
+      }
+    }
 
-        // 3️⃣ Inicia rotação automática
-        setInterval(trocarPainel, tempoPorPainel);
-        setTimeout(() => location.reload(true), 15 * 60 * 1000); // recarrega a cada 15 min
-      } catch (error) {
-        console.error("❌ Erro ao inicializar:", error);
-      }
-    }
+    async function trocarPainel() {
+      // Esta função está boa, mas adicionamos uma verificação de segurança
+      if (!viz || !viz.workbook) {
+          console.warn("A visualização não está pronta, pulando a troca.");
+          return;
+      }
 
-    async function trocarPainel() {
-      try {
-        const nextDashboard = dashboardNames[currentDashboardIndex];
-        console.log("🔁 Alternando para:", nextDashboard);
-        currentDashboardIndex = (currentDashboardIndex + 1) % dashboardNames.length;
+      try {
+        const nextDashboard = dashboardNames[currentDashboardIndex];
+        console.log("🔁 Alternando para:", nextDashboard);
+        currentDashboardIndex = (currentDashboardIndex + 1) % dashboardNames.length;
+        
+        const workbook = viz.workbook; // Não precisa de 'await' aqui
+        await workbook.activateSheetAsync(nextDashboard);
+        console.log(`✅ Sucesso! Agora mostrando: ${nextDashboard}`);
+      } catch (error) {
+        console.error("Erro ao trocar painel:", error.message);
+      }
+    }
 
-        // Só funciona se os nomes forem exatamente iguais aos do Tableau
-        const workbook = await viz.workbook;
-        await workbook.activateSheetAsync(nextDashboard);
-      } catch (error) {
-        console.warn("Erro ao trocar painel:", error.message);
-      }
-    }
-
-    initViz();
-  </script>
+    // Inicia o processo
+    initViz();
+  </script>
 </body>
 </html>
-
