@@ -4,7 +4,9 @@
   <meta charset="UTF-8">
   <title>Raizz Capital - TV Comercial</title>
   <link rel="icon" href="https://raizzcapital.com.br/wp-content/uploads/2024/02/logo-raizz-capital-fundo-branco.webp">
-  <script src="https://public.tableau.com/javascripts/api/tableau.embedding.3.latest.min.js"></script>
+  
+  <script type="module" src="https://public.tableau.com/javascripts/api/tableau.embedding.3.latest.min.js"></script>
+  
   <style>
     html, body {
       margin: 0;
@@ -29,7 +31,6 @@
 
     async function initViz() {
       try {
-        // 1️⃣ Chama o backend para pegar URL autenticada
         const resp = await fetch(backendURL);
         const data = await resp.json();
 
@@ -41,9 +42,8 @@
         const url = data.embed_url;
         console.log("✅ URL autenticada recebida:", url);
 
-        // 2️⃣ Cria o elemento <tableau-viz> e adiciona ao container
         const container = document.getElementById("vizContainer");
-        container.innerHTML = ""; // limpa se já existir
+        container.innerHTML = "";
 
         const vizElement = document.createElement("tableau-viz");
         vizElement.src = url;
@@ -51,29 +51,40 @@
         vizElement.hideTabs = true;
         vizElement.style.width = "100%";
         vizElement.style.height = "100vh";
+        
+        // MUDANÇA 2: Ouvir o evento 'firstinteractive' ANTES de iniciar a rotação
+        vizElement.addEventListener('firstinteractive', () => {
+          console.log('✅ Painel interativo. Iniciando rotação.');
+          // Agora é seguro iniciar a rotação
+          setInterval(trocarPainel, tempoPorPainel);
+          // Opcional: mover o reload para cá também garante que ele só comece após um carregamento bem-sucedido
+          setTimeout(() => location.reload(true), 15 * 60 * 1000);
+        });
+        
         container.appendChild(vizElement);
-
         viz = vizElement;
-
-        // 3️⃣ Inicia rotação automática
-        setInterval(trocarPainel, tempoPorPainel);
-        setTimeout(() => location.reload(true), 15 * 60 * 1000); // recarrega a cada 15 min
+        
       } catch (error) {
         console.error("❌ Erro ao inicializar:", error);
       }
     }
 
     async function trocarPainel() {
+      // Esta função está boa, o problema era QUANDO ela era chamada.
+      // Com a MUDANÇA 2, ela só será chamada quando 'viz' e 'viz.workbook' estiverem prontos.
       try {
+        // A lógica de alternância começa com o primeiro item da lista na primeira execução
         const nextDashboard = dashboardNames[currentDashboardIndex];
         console.log("🔁 Alternando para:", nextDashboard);
+        
+        // Atualiza o índice para a PRÓXIMA vez que a função for chamada
         currentDashboardIndex = (currentDashboardIndex + 1) % dashboardNames.length;
 
-        // Só funciona se os nomes forem exatamente iguais aos do Tableau
-        const workbook = await viz.workbook;
+        const workbook = viz.workbook; // Não precisa de await aqui na v3 com componentes web
         await workbook.activateSheetAsync(nextDashboard);
+        console.log(`✅ Trocado com sucesso para ${nextDashboard}`);
       } catch (error) {
-        console.warn("Erro ao trocar painel:", error.message);
+        console.error("Erro ao trocar painel:", error.message);
       }
     }
 
