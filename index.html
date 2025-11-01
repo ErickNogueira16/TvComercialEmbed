@@ -1,89 +1,83 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-    <title>Raizz Capital - TV Comercial</title>
-    <link rel="icon" href="https://raizzcapital.com.br/wp-content/uploads/2024/02/logo-raizz-capital-fundo-branco.webp">
-    <style>
-        * { margin: 0; padding: 0; }
-        #vizContainer { width: 100%; height: 100vh; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Raizz Capital - TV Comercial</title>
+  <link rel="icon" href="https://raizzcapital.com.br/wp-content/uploads/2024/02/logo-raizz-capital-fundo-branco.webp">
+  <script src="https://public.tableau.com/javascripts/api/tableau.embedding.3.latest.min.js"></script>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background-color: #000;
+    }
+    #vizContainer {
+      width: 100%;
+      height: 100vh;
+    }
+  </style>
 </head>
 <body>
-    <div id="vizContainer"></div>
+  <div id="vizContainer"></div>
 
-    <script type="text/javascript" src="https://tableau.github.io/tableau-javascript-api/releases/tableau-2.min.js" onload="initViz()"></script>
+  <script>
+    const backendURL = "https://tableau-backend-h83x.onrender.com/get_tableau_url";
+    const dashboardNames = ["COMERCIAL | ITAJAÍ", "COMERCIAL | VIANA"];
+    const tempoPorPainel = 60000; // 1 min
+    let viz, currentDashboardIndex = 0;
 
-    <script>
-        let viz;
-        const dashboardNames = ["COMERCIAL | ITAJAÍ", "COMERCIAL | VIANA"];
-        const tempoPorPainel = 60000;
-        let currentDashboardIndex = 0;
+    async function initViz() {
+      try {
+        // 1️⃣ Chama o backend para pegar URL autenticada
+        const resp = await fetch(backendURL);
+        const data = await resp.json();
 
-        const backendURL = "https://tableau-backend-h83x.onrender.com/get_tableau_url";
-
-        async function initViz() {
-            if (typeof tableau === "undefined") {
-                console.error("❌ Tableau API não carregou!");
-                return;
-            }
-
-            try {
-                const response = await fetch(backendURL);
-                const data = await response.json();
-
-                if (data.error) {
-                    console.error("❌ Erro ao obter embed URL:", data.error);
-                    return;
-                }
-
-                const url = data.embed_url;
-                console.log("✅ URL de embed recebida:", url);
-
-                const containerDiv = document.getElementById("vizContainer");
-                const options = {
-                    hideTabs: true,
-                    hideToolbar: true,
-                    onFirstInteractive: function() {
-                        console.log("✅ Visualização carregada!");
-                        listarSheets();
-                        iniciarCiclo();
-                    }
-                };
-
-                viz = new tableau.Viz(containerDiv, url, options);
-
-            } catch (error) {
-                console.error("❌ Erro ao inicializar o Tableau:", error);
-            }
+        if (data.error) {
+          console.error("Erro ao obter URL:", data.error);
+          return;
         }
 
-        function listarSheets() {
-            if (!viz) return;
-            const workbook = viz.getWorkbook();
-            const sheets = workbook.getPublishedSheetsInfo();
-            sheets.forEach(s => console.log("Sheet disponível:", s.getName()));
-        }
+        const url = data.embed_url;
+        console.log("✅ URL autenticada recebida:", url);
 
-        function iniciarCiclo() {
-            setInterval(trocarPainel, tempoPorPainel);
-        }
+        // 2️⃣ Cria o elemento <tableau-viz> e adiciona ao container
+        const container = document.getElementById("vizContainer");
+        container.innerHTML = ""; // limpa se já existir
 
-        function trocarPainel() {
-            if (!viz) return;
-            const workbook = viz.getWorkbook();
-            const painelAtual = dashboardNames[currentDashboardIndex];
+        const vizElement = document.createElement("tableau-viz");
+        vizElement.src = url;
+        vizElement.toolbar = "hidden";
+        vizElement.hideTabs = true;
+        vizElement.style.width = "100%";
+        vizElement.style.height = "100vh";
+        container.appendChild(vizElement);
 
-            workbook.activateSheetAsync(painelAtual)
-                .then(() => {
-                    console.log("🔁 Painel ativado:", painelAtual);
-                    currentDashboardIndex = (currentDashboardIndex + 1) % dashboardNames.length;
-                })
-                .catch(error => console.error("Erro na transição:", error));
-        }
+        viz = vizElement;
 
-        setTimeout(() => {
-            location.reload(true);
-        }, 900000);
-    </script>
+        // 3️⃣ Inicia rotação automática
+        setInterval(trocarPainel, tempoPorPainel);
+        setTimeout(() => location.reload(true), 15 * 60 * 1000); // recarrega a cada 15 min
+      } catch (error) {
+        console.error("❌ Erro ao inicializar:", error);
+      }
+    }
+
+    async function trocarPainel() {
+      try {
+        const nextDashboard = dashboardNames[currentDashboardIndex];
+        console.log("🔁 Alternando para:", nextDashboard);
+        currentDashboardIndex = (currentDashboardIndex + 1) % dashboardNames.length;
+
+        // Só funciona se os nomes forem exatamente iguais aos do Tableau
+        const workbook = await viz.workbook;
+        await workbook.activateSheetAsync(nextDashboard);
+      } catch (error) {
+        console.warn("Erro ao trocar painel:", error.message);
+      }
+    }
+
+    initViz();
+  </script>
 </body>
 </html>
