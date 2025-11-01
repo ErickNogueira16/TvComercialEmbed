@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Raizz Capital - TV Comercial</title>
-    <script type="text/javascript" src="https://public.tableau.com/javascripts/api/tableau-2.min.js"></script>
+    <script type="text/javascript" src="https://tableau.github.io/tableau-javascript-api/releases/tableau-2.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -20,28 +20,52 @@
 
     <script>
         let viz;
-        const dashboardNames = ["COMERCIAL | ITAJAÍ", "COMERCIAL | VIANA"]; 
+        const dashboardNames = ["COMERCIAL | ITAJAÍ", "COMERCIAL | VIANA"];
         const tempoPorPainel = 60000;
         let currentDashboardIndex = 0;
 
-        const url = "https://public.tableau.com/views/TV_Comercial_-_Raizz_Capital/COMERCIALITAJA?:language=pt-BR&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link";
+        // 🔗 URL do backend no Render
+        const backendURL = "https://tableau-backend-h83x.onrender.com/get_tableau_token";
 
-        const options = {
-            hideTabs: true,
-            hideToolbar: true,
-            onFirstInteractive: function() {
-                console.log("Visualização carregada!");
-                listarSheets(); // <<< mostra no console os nomes dos sheets
-                iniciarCiclo();
+        async function initViz() {
+            try {
+                // 1️⃣ Busca o token no backend
+                const response = await fetch(backendURL);
+                const data = await response.json();
+
+                if (data.error) {
+                    console.error("Erro ao gerar token:", data.error);
+                    return;
+                }
+
+                const { token, site_id } = data;
+                console.log("✅ Token recebido:", token);
+
+                // 2️⃣ Monte a URL do Tableau Cloud (não pública)
+                const tableauCloudUrl = "https://10ax.online.tableau.com"; // ajuste se for outro cluster
+                const siteContentUrl = "raizzcapital"; // substitua pelo seu site content URL
+                const workbookName = "TV_Comercial_-_Raizz_Capital";
+                const viewName = "COMERCIALITAJA"; // primeira view que deve carregar
+
+                const url = `${tableauCloudUrl}/t/${siteContentUrl}/views/${workbookName}/${viewName}?:embed=yes&:showAppBanner=false&:jwt=${token}`;
+
+                const containerDiv = document.getElementById("vizContainer");
+                const options = {
+                    hideTabs: true,
+                    hideToolbar: true,
+                    onFirstInteractive: function() {
+                        console.log("✅ Visualização carregada!");
+                        listarSheets();
+                        iniciarCiclo();
+                    }
+                };
+
+                viz = new tableau.Viz(containerDiv, url, options);
+            } catch (error) {
+                console.error("❌ Erro ao inicializar o Tableau:", error);
             }
-        };
-
-        function initViz() {
-            const containerDiv = document.getElementById("vizContainer");
-            viz = new tableau.Viz(containerDiv, url, options);
         }
 
-        // Função para listar os nomes das sheets disponíveis
         function listarSheets() {
             const workbook = viz.getWorkbook();
             const sheets = workbook.getPublishedSheetsInfo();
@@ -58,7 +82,7 @@
 
             workbook.activateSheetAsync(painelAtual)
                 .then(() => {
-                    console.log("Painel ativado:", painelAtual);
+                    console.log("🔁 Painel ativado:", painelAtual);
                     currentDashboardIndex = (currentDashboardIndex + 1) % dashboardNames.length;
                 })
                 .catch(error => {
@@ -75,9 +99,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
