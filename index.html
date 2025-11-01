@@ -47,7 +47,7 @@
                 const workbookName = "TV_Comercial_-_Raizz_Capital";
                 const viewName = "COMERCIALITAJA"; // primeira view que deve carregar
 
-                const url = `https://us-east-1.online.tableau.com/t/anabeatriz-8787706e44/views/TVComercial-RaizzCapital_17543562925950/COMERCIALITAJA?:origin=card_share_link&:embed=y:jwt=${token}`;
+                const url = `${tableauCloudUrl}/t/${siteContentUrl}/views/${workbookName}/${viewName}?:embed=yes&:showAppBanner=false&:jwt=${token}`;
 
                 const containerDiv = document.getElementById("vizContainer");
                 const options = {
