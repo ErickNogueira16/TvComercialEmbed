@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Raizz Capital - TV Comercial</title>
-    <script type="text/javascript" src="https://tableau.github.io/tableau-javascript-api/releases/tableau-2.min.js" onload="initViz()"></script>
+    <link rel="icon" href="https://raizzcapital.com.br/wp-content/uploads/2024/02/logo-raizz-capital-fundo-branco.webp">
     <style>
         * {
             margin: 0;
@@ -13,10 +13,12 @@
             height: 100vh;
         }
     </style>
-    <link rel="icon" href="https://raizzcapital.com.br/wp-content/uploads/2024/02/logo-raizz-capital-fundo-branco.webp">
 </head>
 <body>
     <div id="vizContainer"></div>
+
+    <!-- Carrega a Tableau JS API -->
+    <script type="text/javascript" src="https://tableau.github.io/tableau-javascript-api/releases/tableau-2.min.js" onload="initViz()"></script>
 
     <script>
         let viz;
@@ -24,10 +26,15 @@
         const tempoPorPainel = 60000;
         let currentDashboardIndex = 0;
 
-        // 🔗 URL do backend no Render
+        // URL do backend no Render
         const backendURL = "https://tableau-backend-h83x.onrender.com/get_tableau_token";
 
         async function initViz() {
+            if (typeof tableau === "undefined") {
+                console.error("❌ Tableau API não carregou!");
+                return;
+            }
+
             try {
                 // 1️⃣ Busca o token no backend
                 const response = await fetch(backendURL);
@@ -40,11 +47,11 @@
 
                 console.log("✅ Token recebido do backend:", data.token);
 
-                // 2️⃣ Monte a URL do Tableau Cloud (sem passar JWT)
+                // 2️⃣ Monte a URL do Tableau Cloud (sem :jwt)
                 const tableauCloudUrl = "https://10ax.online.tableau.com";
                 const siteContentUrl = "raizzcapital";
                 const workbookName = "TV_Comercial_-_Raizz_Capital";
-                const viewName = "COMERCIALITAJA"; // primeira view que deve carregar
+                const viewName = "COMERCIALITAJA";
 
                 const url = `${tableauCloudUrl}/t/${siteContentUrl}/views/${workbookName}/${viewName}?:embed=yes&:showAppBanner=false`;
 
@@ -66,6 +73,7 @@
         }
 
         function listarSheets() {
+            if (!viz) return;
             const workbook = viz.getWorkbook();
             const sheets = workbook.getPublishedSheetsInfo();
             sheets.forEach(s => console.log("Sheet disponível:", s.getName()));
@@ -76,6 +84,7 @@
         }
 
         function trocarPainel() {
+            if (!viz) return;
             const workbook = viz.getWorkbook();
             const painelAtual = dashboardNames[currentDashboardIndex];
 
@@ -89,8 +98,6 @@
                 });
         }
 
-        initViz();
-
         // Recarrega a página a cada 15 minutos
         setTimeout(() => {
             location.reload(true);
@@ -98,4 +105,3 @@
     </script>
 </body>
 </html>
-
