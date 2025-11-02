@@ -4,8 +4,10 @@
   <meta charset="UTF-8">
   <title>Raizz Capital - TV Comercial</title>
   <link rel="icon" href="https://raizzcapital.com.br/wp-content/uploads/2024/02/logo-raizz-capital-fundo-branco.webp">
-  <!-- ✅ Usa a API Tableau JS v2 (compatível com todos os navegadores sem módulo) -->
-  <script src="https://tableau.github.io/tableau-javascript-api/releases/tableau-2.min.js"></script>
+
+  <!-- ✅ Usa a API Tableau v2 diretamente do CDN oficial -->
+  <script src="https://cdn.jsdelivr.net/npm/tableau-api@2.8.0/tableau-2.min.js"></script>
+
   <style>
     html, body {
       margin: 0;
@@ -17,6 +19,7 @@
     }
   </style>
 </head>
+
 <body>
   <div id="vizContainer"></div>
 
@@ -28,7 +31,7 @@
 
     async function initViz() {
       try {
-        // 1️⃣ Busca URL autenticada do backend
+        // 1️⃣ Obtém URL autenticada do backend
         const resp = await fetch(backendURL);
         const data = await resp.json();
 
@@ -40,7 +43,7 @@
         const url = data.embed_url;
         console.log("✅ URL autenticada recebida:", url);
 
-        // 2️⃣ Inicializa o viz do Tableau
+        // 2️⃣ Cria visualização Tableau
         const container = document.getElementById("vizContainer");
         const options = {
           hideTabs: true,
@@ -51,10 +54,12 @@
           }
         };
 
+        // ✅ Aqui a variável 'tableau' estará carregada e disponível
         viz = new tableau.Viz(container, url, options);
 
-        // Recarrega a cada 15 minutos para manter sessão ativa
+        // Recarrega a cada 15 minutos para renovar a sessão
         setTimeout(() => location.reload(true), 15 * 60 * 1000);
+
       } catch (error) {
         console.error("❌ Erro ao inicializar:", error);
       }
@@ -73,12 +78,11 @@
           console.log("🔁 Painel ativado:", painelAtual);
           currentDashboardIndex = (currentDashboardIndex + 1) % dashboardNames.length;
         })
-        .catch(error => {
-          console.error("Erro ao trocar painel:", error);
-        });
+        .catch(error => console.error("Erro ao trocar painel:", error));
     }
 
-    initViz();
+    // ✅ Aguarda carregar o script do Tableau antes de iniciar
+    window.addEventListener("load", initViz);
   </script>
 </body>
 </html>
