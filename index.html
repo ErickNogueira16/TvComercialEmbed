@@ -5,8 +5,8 @@
   <title>Raizz Capital - TV Comercial</title>
   <link rel="icon" href="https://raizzcapital.com.br/wp-content/uploads/2024/02/logo-raizz-capital-fundo-branco.webp">
 
-  <!-- ✅ Usa a API Tableau v2 diretamente do CDN oficial -->
-  <script src="https://cdn.jsdelivr.net/npm/tableau-api@2.8.0/tableau-2.min.js"></script>
+  <!-- ✅ Novo SDK de Embedding da Tableau -->
+  <script type="module" src="https://public.tableau.com/javascripts/api/tableau.embedding.3.latest.min.js"></script>
 
   <style>
     html, body {
@@ -21,9 +21,10 @@
 </head>
 
 <body>
-  <div id="vizContainer"></div>
+  <!-- O componente nativo do SDK -->
+  <tableau-viz id="vizContainer"></tableau-viz>
 
-  <script>
+  <script type="module">
     const backendURL = "https://tableau-backend-h83x.onrender.com/get_tableau_url";
     const dashboardNames = ["COMERCIAL | ITAJAÍ", "COMERCIAL | VIANA"];
     const tempoPorPainel = 60000; // 1 min
@@ -31,7 +32,6 @@
 
     async function initViz() {
       try {
-        // 1️⃣ Obtém URL autenticada do backend
         const resp = await fetch(backendURL);
         const data = await resp.json();
 
@@ -43,21 +43,20 @@
         const url = data.embed_url;
         console.log("✅ URL autenticada recebida:", url);
 
-        // 2️⃣ Cria visualização Tableau
-        const container = document.getElementById("vizContainer");
-        const options = {
-          hideTabs: true,
-          hideToolbar: true,
-          onFirstInteractive: function() {
-            console.log("✅ Painel carregado!");
-            iniciarCiclo();
-          }
-        };
+        // ✅ Cria o viz via Web Component moderno
+        const vizContainer = document.getElementById("vizContainer");
+        vizContainer.src = url;
+        vizContainer.hideTabs = true;
+        vizContainer.hideToolbar = true;
 
-        // ✅ Aqui a variável 'tableau' estará carregada e disponível
-        viz = new tableau.Viz(container, url, options);
+        vizContainer.addEventListener("firstinteractive", () => {
+          console.log("✅ Painel carregado!");
+          iniciarCiclo();
+        });
 
-        // Recarrega a cada 15 minutos para renovar a sessão
+        viz = vizContainer;
+
+        // Recarrega a cada 15 minutos
         setTimeout(() => location.reload(true), 15 * 60 * 1000);
 
       } catch (error) {
@@ -69,20 +68,19 @@
       setInterval(trocarPainel, tempoPorPainel);
     }
 
-    function trocarPainel() {
-      const workbook = viz.getWorkbook();
-      const painelAtual = dashboardNames[currentDashboardIndex];
-
-      workbook.activateSheetAsync(painelAtual)
-        .then(() => {
-          console.log("🔁 Painel ativado:", painelAtual);
-          currentDashboardIndex = (currentDashboardIndex + 1) % dashboardNames.length;
-        })
-        .catch(error => console.error("Erro ao trocar painel:", error));
+    async function trocarPainel() {
+      try {
+        const painelAtual = dashboardNames[currentDashboardIndex];
+        const workbook = await viz.workbook;
+        await workbook.activateSheetAsync(painelAtual);
+        console.log("🔁 Painel ativado:", painelAtual);
+        currentDashboardIndex = (currentDashboardIndex + 1) % dashboardNames.length;
+      } catch (error) {
+        console.error("Erro ao trocar painel:", error);
+      }
     }
 
-    // ✅ Aguarda carregar o script do Tableau antes de iniciar
-    window.addEventListener("load", initViz);
+    initViz();
   </script>
 </body>
 </html>
