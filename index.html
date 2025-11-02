@@ -4,21 +4,30 @@
   <title>Raizz Capital - TV Comercial</title>
   <script type="module" src="https://us-east-1.online.tableau.com/javascripts/api/tableau.embedding.3.latest.min.js"></script>
   <style>
-    * { margin: 0; padding: 0; }
-    #vizContainer { width: 100%; height: 100vh; }
-    tableau-viz { width: 100%; height: 100vh; border: none; }
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    #vizContainer {
+      width: 100%;
+      height: 100vh;
+    }
+    tableau-viz { 
+      width: 100%;
+      height: 100vh;
+      border: none;
+    }
   </style>
   <link rel="icon" href="https://raizzcapital.com.br/wp-content/uploads/2024/02/logo-raizz-capital-fundo-branco.webp">
 </head>
 <body>
   <div id="vizContainer">
-    <!-- o <tableau-viz> será injetado dinamicamente -->
   </div>
 
   <script>
     const backendURL = "https://tableau-backend-h83x.onrender.com/get_tableau_url";
     const dashboardNames = ["COMERCIALITAJA", "COMERCIALVIANA"];
-    const tempoPorPainel = 60000; // 60 segundos
+    const tempoPorPainel = 60000;
     let currentDashboardIndex = 0;
     let vizElement = null;
 
@@ -35,12 +44,11 @@
         const { embed_url, jwt } = data;
         console.log("✅ URL autenticada recebida:", embed_url);
 
-        // Cria o componente <tableau-viz>
         const container = document.getElementById("vizContainer");
-        container.innerHTML = ""; // limpa o anterior
+        container.innerHTML = "";
         vizElement = document.createElement("tableau-viz");
         vizElement.src = embed_url;
-        vizElement.token = jwt; // passa o JWT
+        vizElement.token = jwt;
         vizElement.toolbar = "hidden";
         vizElement.hideTabs = true;
         container.appendChild(vizElement);
@@ -70,10 +78,7 @@
 
     carregarViz();
 
-    // Recarrega a página a cada 15 minutos
     setTimeout(() => location.reload(true), 900000);
   </script>
 </body>
 </html>
-
-
