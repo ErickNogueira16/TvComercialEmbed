@@ -1,74 +1,75 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Raizz Capital - TV Comercial</title>
-  <script type="module" src="https://us-east-1.online.tableau.com/javascripts/api/tableau.embedding.3.latest.min.js"></script>
-  <style>
-    * { margin: 0; padding: 0; }
-    #vizContainer { width: 100%; height: 100vh; }
-    tableau-viz { width: 100%; height: 100vh; border: none; }
-  </style>
-  <link rel="icon" href="https://raizzcapital.com.br/wp-content/uploads/2024/02/logo-raizz-capital-fundo-branco.webp">
+    <title>Raizz Capital - TV Captação</title>
+    <script type="text/javascript" src="https://public.tableau.com/javascripts/api/tableau-2.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        #vizContainer {
+            width: 100%;
+            height: 100vh;
+        }
+    </style>
+    <link rel="icon" href="https://raizzcapital.com.br/wp-content/uploads/2024/02/logo-raizz-capital-fundo-branco.webp">
 </head>
 <body>
-  <div id="vizContainer"></div>
+    <div id="vizContainer"></div>
 
-  <script>
-    const backendURL = "https://tableau-backend-h83x.onrender.com/get_tableau_url";
-    const dashboardNames = ["COMERCIALITAJA", "COMERCIALVIANA"];
-    const tempoPorPainel = 60000; // 60 segundos
-    const jwtExpiraEmMinutos = 10; // JWT do Connected App expira em 10 minutos
-    let currentDashboardIndex = 0;
-    let vizElement = null;
+    <script>
+        let viz;
+        const dashboardNames = ["COMERCIAL | ITAJAÍ", "COMERCIAL | VIANA"]; 
+        const tempoPorPainel = 60000;
+        let currentDashboardIndex = 0;
 
-    async function carregarViz() {
-      try {
-        const { embed_url, jwt } = await pegarToken();
-        console.log("✅ URL autenticada recebida:", embed_url);
+        const url = "https://public.tableau.com/views/TV_Comercial_-_Raizz_Capital/COMERCIALVIANA?:language=pt-BR&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link";
 
-        const container = document.getElementById("vizContainer");
-        container.innerHTML = "";
-        vizElement = document.createElement("tableau-viz");
-        vizElement.src = embed_url;
-        vizElement.token = jwt;
-        vizElement.toolbar = "hidden";
-        vizElement.hideTabs = true;
-        container.appendChild(vizElement);
+        const options = {
+            hideTabs: true,
+            hideToolbar: true,
+            onFirstInteractive: function() {
+                console.log("Visualização carregada!");
+                listarSheets(); 
+                iniciarCiclo();
+            }
+        };
 
-        iniciarCiclo();
-        // Recarrega a página quando o token expirar
-        setTimeout(() => location.reload(true), jwtExpiraEmMinutos * 60 * 1000);
+        function initViz() {
+            const containerDiv = document.getElementById("vizContainer");
+            viz = new tableau.Viz(containerDiv, url, options);
+        }
 
-      } catch (error) {
-        console.error("❌ Erro ao inicializar o Tableau:", error);
-      }
-    }
+        function listarSheets() {
+            const workbook = viz.getWorkbook();
+            const sheets = workbook.getPublishedSheetsInfo();
+            sheets.forEach(s => console.log("Sheet disponível:", s.getName()));
+        }
 
-    async function pegarToken() {
-      try {
-        const response = await fetch(backendURL);
-        const data = await response.json();
-        if (data.error) throw new Error(data.error);
-        return data;
-      } catch (error) {
-        console.error("❌ Erro ao buscar token:", error);
-        throw error;
-      }
-    }
+        function iniciarCiclo() {
+            setInterval(trocarPainel, tempoPorPainel);
+        }
 
-    function iniciarCiclo() {
-      setInterval(trocarPainel, tempoPorPainel);
-    }
+        function trocarPainel() {
+            const workbook = viz.getWorkbook();
+            const painelAtual = dashboardNames[currentDashboardIndex];
 
-    function trocarPainel() {
-      currentDashboardIndex = (currentDashboardIndex + 1) % dashboardNames.length;
-      const novoPainel = dashboardNames[currentDashboardIndex];
-      const newUrl = `https://us-east-1.online.tableau.com/t/anabeatriz-8787706e44/views/TVComercial-RaizzCapital_17543562925950/${novoPainel}?:embed=yes&:showAppBanner=false`;
-      vizElement.src = newUrl;
-      console.log("🔁 Painel trocado para:", novoPainel);
-    }
+            workbook.activateSheetAsync(painelAtual)
+                .then(() => {
+                    console.log("Painel ativado:", painelAtual);
+                    currentDashboardIndex = (currentDashboardIndex + 1) % dashboardNames.length;
+                })
+                .catch(error => {
+                    console.error("Erro na transição:", error);
+                });
+        }
 
-    carregarViz();
-  </script>
+        initViz();
+
+        setTimeout(() => {
+            location.reload(true);
+        }, 900000);
+    </script>
 </body>
 </html>
